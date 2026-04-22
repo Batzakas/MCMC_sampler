@@ -324,9 +324,9 @@ def run_diagnostics(samples, fm, em, options):
 
 if __name__ == "__main__":
 
-    DIMACS_PATH  = '2.6.28.6-icse11.dimacs'
-    CONFIG_PATH  = 'config.x86_64'
-    DATASET_PATH = 'final_dataset.csv'
+    DIMACS_PATH  = 'dataset/2.6.28.6-icse11.dimacs'
+    CONFIG_PATH  = 'dataset/config.x86_64'
+    DATASET_PATH = 'dataset/final_dataset.csv'
     PRODUCT      = 'linux/linux_kernel'
 
     N_CHAINS    = 4
@@ -360,11 +360,11 @@ if __name__ == "__main__":
     # Combina amostras de todas as cadeias
     all_samples = [s for r in results for s in r['samples']]
 
-    fm      = FeatureModel(DIMACS_PATH)
-    em      = EnergyModel(fm, W_linux, alpha=ALPHA, beta=BETA)
+    fm = FeatureModel(DIMACS_PATH)
+    em = EnergyModel(fm, W_linux, alpha=ALPHA, beta=BETA)
 
     init_config = {f: config_dict.get(f, 0) for f in fm.variables.values()}
-    options     = list(fm.variables.values())
+    options = list(fm.variables.values())
 
     run_diagnostics(all_samples, fm, em, options)
 
