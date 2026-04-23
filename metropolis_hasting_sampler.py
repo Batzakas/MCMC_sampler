@@ -18,8 +18,8 @@ def build_weight_vector(csv_path, target_product):
 
     W = defaultdict(int)
 
-    defined_re     = re.compile(r'defined\s*\(\s*(CONFIG_[A-Z0-9_]+)\s*\)')
-    not_defined_re = re.compile(r'\(~\s*\(\s*\$\(\s*(CONFIG_[A-Z0-9_]+)\s*\)\s*=\s*\)\s*\)')
+    defined_re = re.compile(r"defined\s*\(\s*(CONFIG_[A-Z0-9_]+)\s*\)")
+    not_defined_re = re.compile(r"\(~\s*\(\s*\$\(\s*(CONFIG_[A-Z0-9_]+)\s*\)\s*=\s*\)\s*\)")
 
     for flag_expr in df["flag"].dropna():
         for feat in defined_re.findall(flag_expr):
@@ -114,9 +114,9 @@ class FeatureModel:
         for clause in self.clauses:
             satisfied = False
             for literal in clause:
-                var_id       = abs(literal)
+                var_id = abs(literal)
                 feature_name = self.variables.get(var_id)
-                val          = config_dict.get(feature_name, 0)
+                val = config_dict.get(feature_name, 0)
                 if (literal > 0 and val == 1) or (literal < 0 and val == 0):
                     satisfied = True
                     break
@@ -189,7 +189,7 @@ class Metropolis:
         Executa a cadeia MH por "repeticoes" passos.
 
         Retorna:
-          estados        : lista de configurações amostradas (após burn-in)
+          estados : lista de configurações amostradas (após burn-in)
           taxa_aceitacao : fração de propostas aceitas ao longo de toda a cadeia
 
         """
@@ -241,9 +241,9 @@ def run_one_mcmc_chain(args):
     )
 
     return {
-        'samples':         samples,
+        'samples': samples,
         'acceptance_rate': acceptance_rate,
-        'seed':            seed,
+        'seed': seed,
     }
 
 
@@ -324,17 +324,17 @@ def run_diagnostics(samples, fm, em, options):
 
 if __name__ == "__main__":
 
-    DIMACS_PATH  = 'dataset/2.6.28.6-icse11.dimacs'
-    CONFIG_PATH  = 'dataset/config.x86_64'
-    DATASET_PATH = 'dataset/final_dataset.csv'
-    PRODUCT      = 'linux/linux_kernel'
+    DIMACS_PATH  = '2.6.28.6-icse11.dimacs'
+    CONFIG_PATH  = 'config.x86_64'
+    DATASET_PATH = 'final_dataset.csv'
+    PRODUCT = 'linux/linux_kernel'
 
-    N_CHAINS    = 4
+    N_CHAINS = 4
     REPETICOES  = 5000
-    BURNIN      = 500
-    K_FLIPS     = 1      # inicialmente 1 flip 
-    ALPHA       = 1.0    # peso do score de vulnerabilidade
-    BETA        = 5.0    # peso da penalidade por violações
+    BURNIN = 500
+    K_FLIPS = 1      # inicialmente 1 flip 
+    ALPHA = 1.0    # peso do score de vulnerabilidade
+    BETA = 50.0    # peso da penalidade por violações
 
     W_linux = build_weight_vector(DATASET_PATH, PRODUCT)
     save_W_to_csv(W_linux, "W_linux.csv")
