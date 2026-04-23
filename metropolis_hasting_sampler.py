@@ -324,9 +324,9 @@ def run_diagnostics(samples, fm, em, options):
 
 if __name__ == "__main__":
 
-    DIMACS_PATH  = '2.6.28.6-icse11.dimacs'
-    CONFIG_PATH  = 'config.x86_64'
-    DATASET_PATH = 'final_dataset.csv'
+    DIMACS_PATH  = 'dataset/2.6.28.6-icse11.dimacs'
+    CONFIG_PATH  = 'dataset/config.x86_64'
+    DATASET_PATH = 'dataset/final_dataset.csv'
     PRODUCT = 'linux/linux_kernel'
 
     N_CHAINS = 4
