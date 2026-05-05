@@ -123,6 +123,7 @@ class FeatureModel:
             if not satisfied:
                 violations += 1
         return violations
+
     # Tentei com cache mas ainda continua lento
     def count_violations_cached(self, config_dict):
         key = tuple(sorted(config_dict.items()))
@@ -166,8 +167,9 @@ class Metropolis:
     A distribuição estacionária é proporcional a exp(log_prob(c)).
     """
 
-    def __init__(self, init_config, options, energy_model):
+    def __init__(self, init_config, options, thinning, energy_model):
         self.options = options
+        self.thinning = thinning
         self.energy_model = energy_model
         self.bin_vec = {opt: init_config.get(opt, 0) for opt in self.options}
 
@@ -196,7 +198,6 @@ class Metropolis:
         estados = []
         estado_atual = self.bin_vec.copy()
         n_aceitos = 0
-
         log_p_atual = self.energy_model.log_prob(estado_atual)
 
         for i in range(repeticoes):
@@ -211,9 +212,8 @@ class Metropolis:
                 log_p_atual = log_p_novo
                 n_aceitos += 1
 
-            if i >= burnin:
+            if i >= burnin and (i - burnin) % self.thinning == 0:
                 estados.append(estado_atual.copy())
-
         taxa_aceitacao = n_aceitos / repeticoes
         return estados, taxa_aceitacao   
 
@@ -224,7 +224,7 @@ def run_one_mcmc_chain(args):
     Recebe (seed, dimacs_path, config_path, W, alpha, beta, k_penalty, repeticoes, burnin, k_flips)
     como tupla para compatibilidade com Pool.map.
     """
-    (seed, dimacs_path, config_path, W, alpha, beta, repeticoes, burnin, k) = args
+    (seed, dimacs_path, config_path, W, alpha, beta, repeticoes, burnin, k, thinning) = args
 
     random.seed(seed)
 
@@ -234,7 +234,7 @@ def run_one_mcmc_chain(args):
     init_config = {f: config_dict.get(f, 0) for f in fm.variables.values()}
 
     em = EnergyModel(fm, W, alpha=alpha, beta=beta)
-    sampler = Metropolis(init_config, list(fm.variables.values()), energy_model=em)
+    sampler = Metropolis(init_config, list(fm.variables.values()),thinning, energy_model=em)
 
     samples, acceptance_rate = sampler.metropolis_hasting(
         repeticoes=repeticoes, burnin=burnin, k=k
@@ -329,12 +329,14 @@ if __name__ == "__main__":
     DATASET_PATH = 'dataset/final_dataset.csv'
     PRODUCT = 'linux/linux_kernel'
 
-    N_CHAINS = 4
-    REPETICOES  = 5000
-    BURNIN = 500
-    K_FLIPS = 1      # inicialmente 1 flip 
+    N_CHAINS = 1
+    REPETICOES  = 1000
+    BURNIN = 50
+    K_FLIPS = 1    # inicialmente 1 flip 
     ALPHA = 1.0    # peso do score de vulnerabilidade
     BETA = 50.0    # peso da penalidade por violações
+    THINNING = 10  # quantidade de steps antes de salvar proxima sample
+    # total samples = (repeticoes - burn-in) / thinning 
 
     W_linux = build_weight_vector(DATASET_PATH, PRODUCT)
     save_W_to_csv(W_linux, "W_linux.csv")
@@ -346,7 +348,7 @@ if __name__ == "__main__":
     # Roda n cadeias em paralelo 
     args_list = [
         (seed, DIMACS_PATH, CONFIG_PATH, W_linux,
-         ALPHA, BETA, REPETICOES, BURNIN, K_FLIPS)
+         ALPHA, BETA, REPETICOES, BURNIN, K_FLIPS, THINNING)
         for seed in range(N_CHAINS)
     ]
 
@@ -370,3 +372,4 @@ if __name__ == "__main__":
 
     df_samples = pd.DataFrame(all_samples)
     df_samples.to_csv('mcmc_samples.csv', index=False)
+    #adicionar  unique_cves/samples
