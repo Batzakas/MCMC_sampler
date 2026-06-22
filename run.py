@@ -1,4 +1,4 @@
-from metropolis_hasting_sampler import *
+from MCMC import *
 import time
 
 DIMACS_PATH  = 'dataset/2.6.28.6-icse11.dimacs'
